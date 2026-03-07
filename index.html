@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ColdReach - Cold Email Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="icon.svg" />
+</head>
+<body>
+  <header class="app-header">
+    <div id="sameline">
+        <img src="logo.svg" alt="logo" width="50" height="50">
+        <h1 id = "appTitle">ColdReach</h1>
+    </div>
+        <p class="subtitle">Track cold emails, referrals, and internship applications in real time</p>
+  </header>
+
+  <main class="container">
+    <section class="form-section">
+      <h2>New Application</h2>
+      <form id="appForm">
+        <div class="row">
+          <label>Company name<input name="company" required></label>
+          <label>Company type<input name="companyType"></label>
+        </div>
+        <div class="row">
+          <label>Position<input name="position"></label>
+          <label>Approach
+            <select name="approach">
+              <option value="cold email">Cold Email</option>
+              <option value="referral">Referral</option>
+              <option value="direct apply">Direct Apply</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Status
+            <select name="status">
+              <option value="sent">Sent</option>
+              <option value="follow up">Follow Up</option>
+              <option value="under process">Under Process</option>
+              <option value="rejected">Rejected</option>
+              <option value="accepted">Accepted</option>
+            </select>
+          </label>
+          <label>Email date<input type="date" name="emailDate"></label>
+        </div>
+        <div class="row">
+          <label>Email address<input name="emailAddress"></label>
+        </div>
+        <div class="row">
+          <label>Resume version sent<input name="resumeVersion"></label>
+        </div>
+        <label class="full">Notes<textarea name="notes" rows="3"></textarea></label>
+
+        <div class="form-actions">
+          <button type="submit" id="submitBtn">Add Application</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <div class="list-header">
+        <h2>Applications</h2>
+        <input id="search" type="search" placeholder="Search by company or resume version" />
+      </div>
+      <div id="cards" class="list-view"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="closeModal" class="close">✕</button>
+      <div id="modalHeader" class="modal-header"></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-actions">
+        <button id="modalDelete" class="delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
