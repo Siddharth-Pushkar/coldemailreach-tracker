@@ -25,8 +25,8 @@
       <a href="#contact">Contact</a>
     </nav>
     <div class="topnav-actions">
-      <a class="nav-btn" href="#authSection">Sign In</a>
-      <a class="nav-btn primary" href="#authSection">Start Now</a>
+      <a id="loginNav" class="nav-btn" href="#authSection">Login</a>
+      <a id="startNowNav" class="nav-btn primary" href="#authSection">Start Now</a>
     </div>
   </header>
 
@@ -36,11 +36,6 @@
       <h1>Track every application and follow-up in a private, real-time workspace.</h1>
       <p>Secure account-based tracking for cold emails, referrals, and internship submissions with a clean, focused
         dashboard.</p>
-    </div>
-    <div class="hero-status">
-      <div class="hero-pill">Real-time data</div>
-      <div class="hero-pill">Per-user workspaces</div>
-      <div class="hero-pill">Fast updates</div>
     </div>
   </section>
 
@@ -62,13 +57,13 @@
 
   <div class="page-shell">
     <section id="authSection" class="auth-section">
-      <h2>Sign in to ColdReach</h2>
+      <h2 id="authTitle">Login to ColdReach</h2>
       <form id="authForm">
         <div class="row">
           <label>Email<input name="authEmail" type="email" required></label>
           <label>Password<input name="authPassword" type="password" required></label>
         </div>
-        <div class="row">
+        <div class="row confirm-row hidden">
           <label>Confirm password<input name="authPasswordConfirm" type="password"></label>
         </div>
         <div class="form-actions auth-actions">
@@ -78,6 +73,11 @@
         <div id="authMessage" class="auth-message"></div>
       </form>
     </section>
+
+    <div id="userInfo" class="user-info hidden">
+      <span>Signed in as <strong id="userEmail"></strong></span>
+      <button type="button" id="logoutBtn">Logout</button>
+    </div>
 
     <main class="container hidden" id="appContent">
       <section class="form-section pane">

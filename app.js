@@ -29,10 +29,14 @@ const colRef = collection(db, 'applications');
 const authForm = document.getElementById('authForm');
 const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
+const loginNav = document.getElementById('loginNav');
+const startNowNav = document.getElementById('startNowNav');
 const logoutBtn = document.getElementById('logoutBtn');
 const authMessage = document.getElementById('authMessage');
 const userInfo = document.getElementById('userInfo');
 const userEmailSpan = document.getElementById('userEmail');
+const authTitle = document.getElementById('authTitle');
+const confirmRow = document.querySelector('.confirm-row');
 const authSection = document.getElementById('authSection');
 const appContent = document.getElementById('appContent');
 
@@ -53,6 +57,23 @@ function showAuthMessage(message, type = 'error') {
   authMessage.textContent = message;
   authMessage.classList.toggle('error', type === 'error');
   authMessage.classList.toggle('success', type === 'success');
+}
+
+function setAuthMode(mode) {
+  if (mode === 'register') {
+    authTitle.textContent = 'Create a ColdReach account';
+    confirmRow.classList.remove('hidden');
+    loginBtn.classList.add('hidden');
+    registerBtn.classList.remove('hidden');
+  } else {
+    authTitle.textContent = 'Login to ColdReach';
+    confirmRow.classList.add('hidden');
+    loginBtn.classList.remove('hidden');
+    registerBtn.classList.add('hidden');
+  }
+  authSection.classList.remove('hidden');
+  appContent.classList.add('hidden');
+  showAuthMessage('');
 }
 
 function setSignedOutState() {
@@ -104,6 +125,18 @@ onAuthStateChanged(auth, user => {
   if (user) setSignedInState(user);
   else setSignedOutState();
 });
+
+loginNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  setAuthMode('login');
+});
+
+startNowNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  setAuthMode('register');
+});
+
+setAuthMode('login');
 
 loginBtn.addEventListener('click', async () => {
   const email = authForm.authEmail.value.trim();
