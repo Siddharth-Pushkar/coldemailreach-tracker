@@ -7,17 +7,36 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   serverTimestamp,
   doc,
   updateDoc,
   deleteDoc
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 const colRef = collection(db, 'applications');
 
 // DOM
+const authForm = document.getElementById('authForm');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const authMessage = document.getElementById('authMessage');
+const userInfo = document.getElementById('userInfo');
+const userEmailSpan = document.getElementById('userEmail');
+const authSection = document.getElementById('authSection');
+const appContent = document.getElementById('appContent');
+
 const appForm = document.getElementById('appForm');
 const cards = document.getElementById('cards');
 const modal = document.getElementById('modal');
@@ -28,6 +47,91 @@ const searchInput = document.getElementById('search');
 
 let allItems = [];
 let currentFilter = '';
+let currentUser = null;
+let unsubscribeListener = null;
+
+function showAuthMessage(message, type = 'error'){
+  authMessage.textContent = message;
+  authMessage.classList.toggle('error', type === 'error');
+  authMessage.classList.toggle('success', type === 'success');
+}
+
+function setSignedOutState(){
+  currentUser = null;
+  if(unsubscribeListener) unsubscribeListener();
+  unsubscribeListener = null;
+  allItems = [];
+  cards.innerHTML = '';
+  authSection.classList.remove('hidden');
+  appContent.classList.add('hidden');
+  userInfo.classList.add('hidden');
+  userEmailSpan.textContent = '';
+}
+
+function setSignedInState(user){
+  currentUser = user;
+  authSection.classList.add('hidden');
+  appContent.classList.remove('hidden');
+  userInfo.classList.remove('hidden');
+  userEmailSpan.textContent = user.email || 'Unknown user';
+  showAuthMessage('');
+  startRealtimeListener(user.uid);
+}
+
+function startRealtimeListener(userId){
+  if(unsubscribeListener) unsubscribeListener();
+  const userQuery = query(colRef, where('userId','==',userId), orderBy('createdAt','desc'));
+  unsubscribeListener = onSnapshot(userQuery, snapshot=>{
+    const items = [];
+    snapshot.forEach(docSnap=>{
+      const d = docSnap.data();
+      items.push({id:docSnap.id,...d});
+    });
+    allItems = items;
+    applyFilter();
+  }, err=>{
+    console.error('Realtime listener error', err);
+  });
+}
+
+onAuthStateChanged(auth, user => {
+  if(user) setSignedInState(user);
+  else setSignedOutState();
+});
+
+loginBtn.addEventListener('click', async ()=>{
+  const email = authForm.authEmail.value.trim();
+  const password = authForm.authPassword.value;
+  if(!email || !password){ showAuthMessage('Email and password are required.'); return; }
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+  }catch(err){
+    showAuthMessage(err.message || 'Login failed.');
+  }
+});
+
+registerBtn.addEventListener('click', async ()=>{
+  const email = authForm.authEmail.value.trim();
+  const password = authForm.authPassword.value;
+  const passwordConfirm = authForm.authPasswordConfirm.value;
+  if(!email || !password){ showAuthMessage('Email and password are required.'); return; }
+  if(password !== passwordConfirm){ showAuthMessage('Passwords do not match.'); return; }
+  try{
+    await createUserWithEmailAndPassword(auth, email, password);
+    showAuthMessage('Account created successfully. You are now signed in.', 'success');
+    authForm.reset();
+  }catch(err){
+    showAuthMessage(err.message || 'Registration failed.');
+  }
+});
+
+logoutBtn.addEventListener('click', async ()=>{
+  try{
+    await signOut(auth);
+  }catch(err){
+    console.error('Logout error', err);
+  }
+});
 
 function formatDate(d){
   if(!d) return '';
@@ -184,6 +288,7 @@ modalDelete.addEventListener('click', async ()=>{
 
 appForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
+  if(!currentUser){ showAuthMessage('You must be signed in to add applications.', 'error'); return; }
   const f = new FormData(appForm);
   const data = {
     company: f.get('company') || '',
@@ -195,24 +300,16 @@ appForm.addEventListener('submit', async (e)=>{
     emailAddress: f.get('emailAddress') || '',
     resumeVersion: f.get('resumeVersion') || '',
     notes: f.get('notes') || '',
+    userId: currentUser.uid,
     createdAt: serverTimestamp()
   };
   try{
     await addDoc(colRef, data);
     appForm.reset();
-  }catch(err){console.error('add doc',err)}
-});
-
-// realtime listener
-const q = query(colRef, orderBy('createdAt','desc'));
-onSnapshot(q, snapshot=>{
-  const items = [];
-  snapshot.forEach(docSnap=>{
-    const d = docSnap.data();
-    items.push({id:docSnap.id,...d});
-  });
-  allItems = items;
-  applyFilter();
+  }catch(err){
+    console.error('add doc',err);
+    showAuthMessage('Could not save application.');
+  }
 });
 
 function applyFilter(){

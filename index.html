@@ -13,10 +13,32 @@
         <img src="logo.svg" alt="logo" width="50" height="50">
         <h1 id = "appTitle">ColdReach</h1>
     </div>
-        <p class="subtitle">Track cold emails, referrals, and internship applications in real time</p>
+    <p class="subtitle">Track cold emails, referrals, and internship applications in real time</p>
+    <div id="userInfo" class="user-info hidden">
+      Signed in as <span id="userEmail"></span>
+      <button id="logoutBtn" type="button">Logout</button>
+    </div>
   </header>
 
-  <main class="container">
+  <section id="authSection" class="auth-section">
+    <h2>Sign in to ColdReach</h2>
+    <form id="authForm">
+      <div class="row">
+        <label>Email<input name="authEmail" type="email" required></label>
+        <label>Password<input name="authPassword" type="password" required></label>
+      </div>
+      <div class="row">
+        <label>Confirm password<input name="authPasswordConfirm" type="password"></label>
+      </div>
+      <div class="form-actions auth-actions">
+        <button type="button" id="loginBtn">Login</button>
+        <button type="button" id="registerBtn">Register</button>
+      </div>
+      <div id="authMessage" class="auth-message"></div>
+    </form>
+  </section>
+
+  <main class="container hidden" id="appContent">
     <section class="form-section">
       <h2>New Application</h2>
       <form id="appForm">
