@@ -5,106 +5,149 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ColdReach - Cold Email Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="icon.svg" />
 </head>
 
 <body>
-  <header class="app-header">
-    <div id="sameline">
-      <img src="logo.svg" alt="logo" width="50" height="50">
-      <h1 id="appTitle">ColdReach</h1>
-    </div>
-    <p class="subtitle">Track cold emails, referrals, and internship applications in real time</p>
-    <div id="userInfo" class="user-info hidden">
-      Signed in as <span id="userEmail"></span>
-      <button id="logoutBtn" type="button">Logout</button>
+  <header class="topbar">
+    <a class="brand" href="#">
+      <img src="logo.svg" alt="logo" width="40" height="40">
+      <span>ColdReach</span>
+    </a>
+    <nav class="topnav-links">
+      <a href="#">Home</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="topnav-actions">
+      <a class="nav-btn" href="#authSection">Sign In</a>
+      <a class="nav-btn primary" href="#authSection">Start Now</a>
     </div>
   </header>
 
-  <section id="authSection" class="auth-section">
-    <h2>Sign in to ColdReach</h2>
-    <form id="authForm">
-      <div class="row">
-        <label>Email<input name="authEmail" type="email" required></label>
-        <label>Password<input name="authPassword" type="password" required></label>
-      </div>
-      <div class="row">
-        <label>Confirm password<input name="authPasswordConfirm" type="password"></label>
-      </div>
-      <div class="form-actions auth-actions">
-        <button type="button" id="loginBtn">Login</button>
-        <button type="button" id="registerBtn">Register</button>
-      </div>
-      <div id="authMessage" class="auth-message"></div>
-    </form>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Cold outreach intelligence</span>
+      <h1>Track every application and follow-up in a private, real-time workspace.</h1>
+      <p>Secure account-based tracking for cold emails, referrals, and internship submissions with a clean, focused
+        dashboard.</p>
+    </div>
+    <div class="hero-status">
+      <div class="hero-pill">Real-time data</div>
+      <div class="hero-pill">Per-user workspaces</div>
+      <div class="hero-pill">Fast updates</div>
+    </div>
   </section>
 
-  <main class="container hidden" id="appContent">
-    <section class="form-section">
-      <h2>New Application</h2>
-      <form id="appForm">
-        <div class="row">
-          <label>Company name<input name="company" required></label>
-          <label>Company type<input name="companyType"></label>
-        </div>
-        <div class="row">
-          <label>Position<input name="position"></label>
-          <label>Approach
-            <select name="approach">
-              <option value="cold email">Cold Email</option>
-              <option value="referral">Referral</option>
-              <option value="direct apply">Direct Apply</option>
-            </select>
-          </label>
-        </div>
-        <div class="row">
-          <label>Status
-            <select name="status">
-              <option value="sent">Sent</option>
-              <option value="follow up">Follow Up</option>
-              <option value="under process">Under Process</option>
-              <option value="rejected">Rejected</option>
-              <option value="accepted">Accepted</option>
-            </select>
-          </label>
-          <label>Email date<input type="date" name="emailDate"></label>
-        </div>
-        <div class="row">
-          <label>Email address<input name="emailAddress"></label>
-        </div>
-        <div class="row">
-          <label>Resume version sent<input name="resumeVersion"></label>
-        </div>
-        <label class="full">Notes<textarea name="notes" rows="3"></textarea></label>
+  <section id="features" class="features-section">
+    <div class="feature-card">
+      <h3>Private user workspaces</h3>
+      <p>Each login gets a separate Firestore-backed dashboard with its own applications and status updates.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Realtime updates</h3>
+      <p>Changes sync instantly across sessions and devices, so your tracking stays accurate with no refresh needed.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Quick status actions</h3>
+      <p>Update application progress directly from the list, with inline status controls and full detail modal views.
+      </p>
+    </div>
+  </section>
 
-        <div class="form-actions">
-          <button type="submit" id="submitBtn">Add Application</button>
+  <div class="page-shell">
+    <section id="authSection" class="auth-section">
+      <h2>Sign in to ColdReach</h2>
+      <form id="authForm">
+        <div class="row">
+          <label>Email<input name="authEmail" type="email" required></label>
+          <label>Password<input name="authPassword" type="password" required></label>
         </div>
+        <div class="row">
+          <label>Confirm password<input name="authPasswordConfirm" type="password"></label>
+        </div>
+        <div class="form-actions auth-actions">
+          <button type="button" id="loginBtn">Login</button>
+          <button type="button" id="registerBtn">Register</button>
+        </div>
+        <div id="authMessage" class="auth-message"></div>
       </form>
     </section>
 
-    <section class="list-section">
-      <div class="list-header">
-        <h2>Applications</h2>
-        <input id="search" type="search" placeholder="Search by company or resume version" />
-      </div>
-      <div id="cards" class="list-view"></div>
-    </section>
-  </main>
+    <main class="container hidden" id="appContent">
+      <section class="form-section pane">
+        <h2>New Application</h2>
+        <form id="appForm">
+          <div class="row">
+            <label>Company name<input name="company" required></label>
+            <label>Company type<input name="companyType"></label>
+          </div>
+          <div class="row">
+            <label>Position<input name="position"></label>
+            <label>Approach
+              <select name="approach">
+                <option value="cold email">Cold Email</option>
+                <option value="referral">Referral</option>
+                <option value="direct apply">Direct Apply</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>Status
+              <select name="status">
+                <option value="sent">Sent</option>
+                <option value="follow up">Follow Up</option>
+                <option value="under process">Under Process</option>
+                <option value="rejected">Rejected</option>
+                <option value="accepted">Accepted</option>
+              </select>
+            </label>
+            <label>Email date<input type="date" name="emailDate"></label>
+          </div>
+          <div class="row">
+            <label>Email address<input name="emailAddress"></label>
+          </div>
+          <div class="row">
+            <label>Resume version sent<input name="resumeVersion"></label>
+          </div>
+          <label class="full">Notes<textarea name="notes" rows="3"></textarea></label>
 
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <button id="closeModal" class="close">✕</button>
-      <div id="modalHeader" class="modal-header"></div>
-      <div id="modalBody" class="modal-body"></div>
-      <div class="modal-actions">
-        <button id="modalDelete" class="delete">Delete</button>
+          <div class="form-actions">
+            <button type="submit" id="submitBtn">Add Application</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="list-section">
+        <div class="list-header">
+          <h2>Applications</h2>
+          <input id="search" type="search" placeholder="Search by company or resume version" />
+        </div>
+        <div id="cards" class="list-view"></div>
+      </section>
+    </main>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <button id="closeModal" class="close">✕</button>
+        <div id="modalHeader" class="modal-header"></div>
+        <div id="modalBody" class="modal-body"></div>
+        <div class="modal-actions">
+          <button id="modalDelete" class="delete">Delete</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script type="module" src="app.js"></script>
+    <footer class="footer" id="contact">
+      <p>ColdReach • Secure cold outreach tracking for professionals</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
 </body>
 
 </html>
