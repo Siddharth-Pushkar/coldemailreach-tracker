@@ -6,7 +6,6 @@ import {
   addDoc,
   onSnapshot,
   query,
-  orderBy,
   where,
   serverTimestamp,
   doc,
@@ -50,15 +49,15 @@ let currentFilter = '';
 let currentUser = null;
 let unsubscribeListener = null;
 
-function showAuthMessage(message, type = 'error'){
+function showAuthMessage(message, type = 'error') {
   authMessage.textContent = message;
   authMessage.classList.toggle('error', type === 'error');
   authMessage.classList.toggle('success', type === 'success');
 }
 
-function setSignedOutState(){
+function setSignedOutState() {
   currentUser = null;
-  if(unsubscribeListener) unsubscribeListener();
+  if (unsubscribeListener) unsubscribeListener();
   unsubscribeListener = null;
   allItems = [];
   cards.innerHTML = '';
@@ -68,7 +67,7 @@ function setSignedOutState(){
   userEmailSpan.textContent = '';
 }
 
-function setSignedInState(user){
+function setSignedInState(user) {
   currentUser = user;
   authSection.classList.add('hidden');
   appContent.classList.remove('hidden');
@@ -78,88 +77,95 @@ function setSignedInState(user){
   startRealtimeListener(user.uid);
 }
 
-function startRealtimeListener(userId){
-  if(unsubscribeListener) unsubscribeListener();
-  const userQuery = query(colRef, where('userId','==',userId), orderBy('createdAt','desc'));
-  unsubscribeListener = onSnapshot(userQuery, snapshot=>{
+function startRealtimeListener(userId) {
+  if (unsubscribeListener) unsubscribeListener();
+  const userQuery = query(colRef, where('userId', '==', userId));
+  unsubscribeListener = onSnapshot(userQuery, snapshot => {
     const items = [];
-    snapshot.forEach(docSnap=>{
+    snapshot.forEach(docSnap => {
       const d = docSnap.data();
-      items.push({id:docSnap.id,...d});
+      items.push({ id: docSnap.id, ...d });
     });
+
+    items.sort((a, b) => {
+      const aTime = a.createdAt && typeof a.createdAt.toDate === 'function' ? a.createdAt.toDate().getTime() : 0;
+      const bTime = b.createdAt && typeof b.createdAt.toDate === 'function' ? b.createdAt.toDate().getTime() : 0;
+      return bTime - aTime;
+    });
+
     allItems = items;
     applyFilter();
-  }, err=>{
+  }, err => {
     console.error('Realtime listener error', err);
   });
 }
 
 onAuthStateChanged(auth, user => {
-  if(user) setSignedInState(user);
+  if (user) setSignedInState(user);
   else setSignedOutState();
 });
 
-loginBtn.addEventListener('click', async ()=>{
+loginBtn.addEventListener('click', async () => {
   const email = authForm.authEmail.value.trim();
   const password = authForm.authPassword.value;
-  if(!email || !password){ showAuthMessage('Email and password are required.'); return; }
-  try{
+  if (!email || !password) { showAuthMessage('Email and password are required.'); return; }
+  try {
     await signInWithEmailAndPassword(auth, email, password);
-  }catch(err){
+  } catch (err) {
     showAuthMessage(err.message || 'Login failed.');
   }
 });
 
-registerBtn.addEventListener('click', async ()=>{
+registerBtn.addEventListener('click', async () => {
   const email = authForm.authEmail.value.trim();
   const password = authForm.authPassword.value;
   const passwordConfirm = authForm.authPasswordConfirm.value;
-  if(!email || !password){ showAuthMessage('Email and password are required.'); return; }
-  if(password !== passwordConfirm){ showAuthMessage('Passwords do not match.'); return; }
-  try{
+  if (!email || !password) { showAuthMessage('Email and password are required.'); return; }
+  if (password !== passwordConfirm) { showAuthMessage('Passwords do not match.'); return; }
+  try {
     await createUserWithEmailAndPassword(auth, email, password);
     showAuthMessage('Account created successfully. You are now signed in.', 'success');
     authForm.reset();
-  }catch(err){
+  } catch (err) {
     showAuthMessage(err.message || 'Registration failed.');
   }
 });
 
-logoutBtn.addEventListener('click', async ()=>{
-  try{
+logoutBtn.addEventListener('click', async () => {
+  try {
     await signOut(auth);
-  }catch(err){
+  } catch (err) {
     console.error('Logout error', err);
   }
 });
 
-function formatDate(d){
-  if(!d) return '';
+function formatDate(d) {
+  if (!d) return '';
   // Firestore Timestamp has toDate()
-  if(typeof d === 'object' && d !== null && typeof d.toDate === 'function'){
+  if (typeof d === 'object' && d !== null && typeof d.toDate === 'function') {
     return d.toDate().toLocaleDateString();
   }
   // If already a Date
-  if(d instanceof Date) return d.toLocaleDateString();
+  if (d instanceof Date) return d.toLocaleDateString();
   // If ISO string
-  try{ const dt = new Date(d); if(!isNaN(dt)) return dt.toLocaleDateString(); }catch(e){}
+  try { const dt = new Date(d); if (!isNaN(dt)) return dt.toLocaleDateString(); } catch (e) { }
   return String(d);
 }
 
-function statusClass(status){
-  if(!status) return 'sent';
+function statusClass(status) {
+  if (!status) return 'sent';
   const s = status.toLowerCase();
-  if(s.includes('sent')) return 'sent';
-  if(s.includes('follow')) return 'follow';
-  if(s.includes('under') || s.includes('process')) return 'processing';
-  if(s.includes('reject')) return 'rejected';
-  if(s.includes('accept')) return 'accepted';
+  if (s.includes('sent')) return 'sent';
+  if (s.includes('follow')) return 'follow';
+  if (s.includes('under') || s.includes('process')) return 'processing';
+  if (s.includes('reject')) return 'rejected';
+  if (s.includes('accept')) return 'accepted';
   return 'sent';
 }
 
-function renderList(items){
+function renderList(items) {
   cards.innerHTML = '';
-  items.forEach(item=>{
+  items.forEach(item => {
     const c = document.createElement('div');
     c.className = 'card';
     c.dataset.id = item.id;
@@ -189,35 +195,35 @@ function renderList(items){
 
     // set select current value
     const sel = c.querySelector('.quick-status');
-    if(sel) sel.value = item.status || 'sent';
+    if (sel) sel.value = item.status || 'sent';
 
     // clicking card opens modal
-    c.addEventListener('click',()=>openModal(item));
+    c.addEventListener('click', () => openModal(item));
 
     // prevent select bubbling
-    sel.addEventListener('click',e=>e.stopPropagation());
-    sel.addEventListener('change', async (e)=>{
+    sel.addEventListener('click', e => e.stopPropagation());
+    sel.addEventListener('change', async (e) => {
       e.stopPropagation();
       const id = e.target.dataset.id;
       const newStatus = e.target.value;
-      try{
-        await updateDoc(doc(db,'applications',id),{status:newStatus});
-      }catch(err){console.error('update status',err)}
+      try {
+        await updateDoc(doc(db, 'applications', id), { status: newStatus });
+      } catch (err) { console.error('update status', err) }
     });
 
     const delBtn = c.querySelector('.delete-btn');
-    delBtn.addEventListener('click', async (e)=>{
+    delBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = e.target.dataset.id;
-      if(!confirm('Delete this application?')) return;
-      try{ await deleteDoc(doc(db,'applications',id)); }catch(err){console.error('delete',err)}
+      if (!confirm('Delete this application?')) return;
+      try { await deleteDoc(doc(db, 'applications', id)); } catch (err) { console.error('delete', err) }
     });
 
     cards.appendChild(c);
   });
 }
 
-function openModal(item){
+function openModal(item) {
   const statusClass_ = statusClass(item.status);
   const modalHeader = document.getElementById('modalHeader');
   modalHeader.innerHTML = `<h2>${escapeHtml(item.company || '')}</h2>`;
@@ -267,7 +273,7 @@ function openModal(item){
           </div>
           <div class="modal-field" style="grid-column:1/-1">
             <strong>Notes:</strong>
-            <span>${escapeHtml(item.notes || 'N/A').replace(/\n/g,'<br>')}</span>
+            <span>${escapeHtml(item.notes || 'N/A').replace(/\n/g, '<br>')}</span>
           </div>
         </div>
       </div>
@@ -276,19 +282,19 @@ function openModal(item){
   modalDelete.dataset.id = item.id;
 }
 
-closeModal.addEventListener('click',()=>modal.classList.add('hidden'));
-modal.addEventListener('click',(e)=>{if(e.target===modal) modal.classList.add('hidden')});
+closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden') });
 
-modalDelete.addEventListener('click', async ()=>{
+modalDelete.addEventListener('click', async () => {
   const id = modalDelete.dataset.id;
-  if(!id) return;
-  if(!confirm('Delete this application?')) return;
-  try{ await deleteDoc(doc(db,'applications',id)); modal.classList.add('hidden'); }catch(err){console.error('modal delete',err)}
+  if (!id) return;
+  if (!confirm('Delete this application?')) return;
+  try { await deleteDoc(doc(db, 'applications', id)); modal.classList.add('hidden'); } catch (err) { console.error('modal delete', err) }
 });
 
-appForm.addEventListener('submit', async (e)=>{
+appForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if(!currentUser){ showAuthMessage('You must be signed in to add applications.', 'error'); return; }
+  if (!currentUser) { showAuthMessage('You must be signed in to add applications.', 'error'); return; }
   const f = new FormData(appForm);
   const data = {
     company: f.get('company') || '',
@@ -303,34 +309,34 @@ appForm.addEventListener('submit', async (e)=>{
     userId: currentUser.uid,
     createdAt: serverTimestamp()
   };
-  try{
+  try {
     await addDoc(colRef, data);
     appForm.reset();
-  }catch(err){
-    console.error('add doc',err);
+  } catch (err) {
+    console.error('add doc', err);
     showAuthMessage('Could not save application.');
   }
 });
 
-function applyFilter(){
+function applyFilter() {
   const term = (currentFilter || '').trim().toLowerCase();
-  if(!term){ renderList(allItems); return; }
-  const filtered = allItems.filter(it=>{
-    const company = (it.company||'').toLowerCase();
-    const resume = (it.resumeVersion||'').toLowerCase();
+  if (!term) { renderList(allItems); return; }
+  const filtered = allItems.filter(it => {
+    const company = (it.company || '').toLowerCase();
+    const resume = (it.resumeVersion || '').toLowerCase();
     return company.includes(term) || resume.includes(term);
   });
   renderList(filtered);
 }
 
-searchInput.addEventListener('input',(e)=>{ currentFilter = e.target.value; applyFilter(); });
+searchInput.addEventListener('input', (e) => { currentFilter = e.target.value; applyFilter(); });
 
-function escapeHtml(str){
-  if(!str) return '';
+function escapeHtml(str) {
+  if (!str) return '';
   return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
