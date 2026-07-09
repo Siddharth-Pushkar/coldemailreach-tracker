@@ -31,6 +31,7 @@ const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
 const loginNav = document.getElementById('loginNav');
 const startNowNav = document.getElementById('startNowNav');
+const logoutNav = document.getElementById('logoutNav');
 const logoutBtn = document.getElementById('logoutBtn');
 const authMessage = document.getElementById('authMessage');
 const userInfo = document.getElementById('userInfo');
@@ -57,6 +58,12 @@ function showAuthMessage(message, type = 'error') {
   authMessage.textContent = message;
   authMessage.classList.toggle('error', type === 'error');
   authMessage.classList.toggle('success', type === 'success');
+}
+
+function updateTopNav(isSignedIn) {
+  if (loginNav) loginNav.classList.toggle('hidden', isSignedIn);
+  if (startNowNav) startNowNav.classList.toggle('hidden', isSignedIn);
+  if (logoutNav) logoutNav.classList.toggle('hidden', !isSignedIn);
 }
 
 function setAuthMode(mode) {
@@ -86,6 +93,8 @@ function setSignedOutState() {
   appContent.classList.add('hidden');
   userInfo.classList.add('hidden');
   userEmailSpan.textContent = '';
+  updateTopNav(false);
+  setAuthMode('login');
 }
 
 function setSignedInState(user) {
@@ -95,6 +104,7 @@ function setSignedInState(user) {
   userInfo.classList.remove('hidden');
   userEmailSpan.textContent = user.email || 'Unknown user';
   showAuthMessage('');
+  updateTopNav(true);
   startRealtimeListener(user.uid);
 }
 
@@ -171,6 +181,17 @@ logoutBtn.addEventListener('click', async () => {
     console.error('Logout error', err);
   }
 });
+
+if (logoutNav) {
+  logoutNav.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Logout error', err);
+    }
+  });
+}
 
 function formatDate(d) {
   if (!d) return '';

@@ -56,6 +56,17 @@ body {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   padding: 8px;
+  box-shadow: 0 0 18px rgba(174, 253, 52, 0.35);
+  animation: logoGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  from {
+    box-shadow: 0 0 12px rgba(174, 253, 52, 0.24);
+  }
+  to {
+    box-shadow: 0 0 24px rgba(174, 253, 52, 0.55);
+  }
 }
 
 .topnav-links {
@@ -138,11 +149,44 @@ body {
   max-width: 640px;
 }
 
-.hero-status {
+.hero-actions {
   display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 28px;
+  padding: 0 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-action:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: rgba(174, 253, 52, 0.12);
+}
+
+.hero-action.outline {
+  background: transparent;
+  border-color: rgba(255,255,255,0.12);
+}
+
+.hero-status {
+  display: none;
 }
 
 .hero-pill {
@@ -189,6 +233,53 @@ body {
   margin: 0;
   color: var(--text-soft);
   line-height: 1.6;
+}
+
+.page-heading {
+  max-width: 840px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.page-heading h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.page-heading p {
+  margin: 14px auto 0;
+  color: var(--text-soft);
+  font-size: 1rem;
+  max-width: 680px;
+}
+
+.features-grid,
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.contact-shell,
+.pricing-shell {
+  padding: 40px 24px;
+}
+
+.contact-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  .features-grid,
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .auth-section,

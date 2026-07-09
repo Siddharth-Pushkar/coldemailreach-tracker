@@ -9,24 +9,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" type="image/png" href="icon.svg" />
+  <link rel="icon" type="image/png" href="coldreachblack.png" />
 </head>
 
 <body>
   <header class="topbar">
     <a class="brand" href="#">
-      <img src="logo.svg" alt="logo" width="40" height="40">
+      <img src="coldreachgreen.svg" alt="logo" width="40" height="40">
       <span>ColdReach</span>
     </a>
     <nav class="topnav-links">
-      <a href="#">Home</a>
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#contact">Contact</a>
+      <a href="index.html">Home</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="contact.html">Contact</a>
     </nav>
     <div class="topnav-actions">
-      <a id="loginNav" class="nav-btn" href="#authSection">Login</a>
-      <a id="startNowNav" class="nav-btn primary" href="#authSection">Start Now</a>
+      <a id="loginNav" class="nav-btn" href="index.html#authSection">Login</a>
+      <a id="startNowNav" class="nav-btn primary" href="index.html#authSection">Start Now</a>
+      <a id="logoutNav" class="nav-btn primary hidden" href="#">Log Out</a>
     </div>
   </header>
 
@@ -39,20 +40,9 @@
     </div>
   </section>
 
-  <section id="features" class="features-section">
-    <div class="feature-card">
-      <h3>Private user workspaces</h3>
-      <p>Each login gets a separate Firestore-backed dashboard with its own applications and status updates.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Realtime updates</h3>
-      <p>Changes sync instantly across sessions and devices, so your tracking stays accurate with no refresh needed.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Quick status actions</h3>
-      <p>Update application progress directly from the list, with inline status controls and full detail modal views.
-      </p>
-    </div>
+  <section class="hero-actions">
+    <a class="hero-action" href="features.html">View Features</a>
+    <a class="hero-action outline" href="contact.html">Contact Us</a>
   </section>
 
   <div class="page-shell">
@@ -147,6 +137,7 @@
       <p>ColdReach • Secure cold outreach tracking for professionals</p>
     </footer>
 
+    <script type="module" src="common.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 
