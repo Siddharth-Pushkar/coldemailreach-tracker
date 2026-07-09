@@ -64,6 +64,7 @@ body {
   from {
     box-shadow: 0 0 12px rgba(174, 253, 52, 0.24);
   }
+
   to {
     box-shadow: 0 0 24px rgba(174, 253, 52, 0.55);
   }
@@ -169,8 +170,8 @@ body {
   font-weight: 700;
   color: var(--text);
   text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
@@ -182,7 +183,7 @@ body {
 
 .hero-action.outline {
   background: transparent;
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .hero-status {
@@ -271,11 +272,12 @@ body {
   margin: 0 auto;
   padding: 28px;
   border-radius: 24px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
   border: 1px solid var(--border);
 }
 
 @media (max-width: 900px) {
+
   .features-grid,
   .pricing-grid {
     grid-template-columns: 1fr;

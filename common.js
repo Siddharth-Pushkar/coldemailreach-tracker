@@ -10,22 +10,22 @@ const startNowNav = document.getElementById('startNowNav');
 const logoutNav = document.getElementById('logoutNav');
 
 function updateTopNav(isSignedIn) {
-  if (loginNav) loginNav.classList.toggle('hidden', isSignedIn);
-  if (startNowNav) startNowNav.classList.toggle('hidden', isSignedIn);
-  if (logoutNav) logoutNav.classList.toggle('hidden', !isSignedIn);
+    if (loginNav) loginNav.classList.toggle('hidden', isSignedIn);
+    if (startNowNav) startNowNav.classList.toggle('hidden', isSignedIn);
+    if (logoutNav) logoutNav.classList.toggle('hidden', !isSignedIn);
 }
 
 onAuthStateChanged(auth, (user) => {
-  updateTopNav(!!user);
+    updateTopNav(!!user);
 });
 
 if (logoutNav) {
-  logoutNav.addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error('Logout error', err);
-    }
-  });
+    logoutNav.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+        } catch (err) {
+            console.error('Logout error', err);
+        }
+    });
 }
