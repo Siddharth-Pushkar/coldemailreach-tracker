@@ -14,6 +14,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import {
   getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -22,6 +24,7 @@ import {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const colRef = collection(db, 'applications');
 
@@ -31,6 +34,7 @@ const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
 const loginNav = document.getElementById('loginNav');
 const startNowNav = document.getElementById('startNowNav');
+const googleBtn = document.getElementById('googleBtn');
 const logoutNav = document.getElementById('logoutNav');
 const logoutBtn = document.getElementById('logoutBtn');
 const authMessage = document.getElementById('authMessage');
@@ -173,6 +177,16 @@ registerBtn.addEventListener('click', async () => {
     showAuthMessage(err.message || 'Registration failed.');
   }
 });
+
+if (googleBtn) {
+  googleBtn.addEventListener('click', async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      showAuthMessage(err.message || 'Google sign-in failed.');
+    }
+  });
+}
 
 logoutBtn.addEventListener('click', async () => {
   try {

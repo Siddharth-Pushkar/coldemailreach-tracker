@@ -318,6 +318,33 @@ body {
   color: var(--text-soft);
 }
 
+.google-auth {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.google-btn {
+  width: 100%;
+  max-width: 360px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #ffffff;
+  color: #121212;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.google-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
 .user-info {
   max-width: 760px;
   margin: 0 auto 24px;
