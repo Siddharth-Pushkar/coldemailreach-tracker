@@ -17,16 +17,23 @@
             <img src="coldreachgreen.svg" alt="logo" width="40" height="40">
             <span>ColdReach</span>
         </a>
-        <nav class="topnav-links">
-            <a href="index.html">Home</a>
-            <a href="features.html">Features</a>
-            <a href="pricing.html">Pricing</a>
-            <a href="contact.html">Contact</a>
-        </nav>
-        <div class="topnav-actions">
-            <a id="loginNav" class="nav-btn" href="index.html#authSection">Login</a>
-            <a id="startNowNav" class="nav-btn primary" href="index.html#authSection">Start Now</a>
-            <a id="logoutNav" class="nav-btn primary hidden" href="#">Log Out</a>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-expanded="false" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-group">
+            <nav class="topnav-links">
+                <a href="index.html">Home</a>
+                <a href="features.html">Features</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="topnav-actions">
+                <a id="loginNav" class="nav-btn" href="index.html#authSection">Login</a>
+                <a id="startNowNav" class="nav-btn primary" href="index.html#authSection">Start Now</a>
+                <a id="logoutNav" class="nav-btn primary hidden" href="#">Log Out</a>
+            </div>
         </div>
     </header>
 
@@ -69,9 +76,9 @@
     </main>
 
     <footer class="footer">
-        <p>ColdReach • Secure cold outreach tracking for professionals</p>
+      <p>ColdReach • Secure cold outreach tracking for professionals</p>
+      <p class="disclaimer">Disclaimer: Do not add sensitive personal or financial data. Keep outreach records privacy-safe and appropriate.</p>
     </footer>
-
     <script type="module" src="common.js"></script>
 </body>
 
