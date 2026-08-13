@@ -36,10 +36,7 @@ const loginNav = document.getElementById('loginNav');
 const startNowNav = document.getElementById('startNowNav');
 const googleBtn = document.getElementById('googleBtn');
 const logoutNav = document.getElementById('logoutNav');
-const logoutBtn = document.getElementById('logoutBtn');
 const authMessage = document.getElementById('authMessage');
-const userInfo = document.getElementById('userInfo');
-const userEmailSpan = document.getElementById('userEmail');
 const authTitle = document.getElementById('authTitle');
 const confirmRow = document.querySelector('.confirm-row');
 const authSection = document.getElementById('authSection');
@@ -51,7 +48,7 @@ const modal = document.getElementById('modal');
 const modalBody = document.getElementById('modalBody');
 const closeModal = document.getElementById('closeModal');
 const modalDelete = document.getElementById('modalDelete');
-const searchInput = document.getElementById('search');
+// removed userInfo and search input elements (deleted from HTML)
 
 let allItems = [];
 let currentFilter = '';
@@ -95,8 +92,7 @@ function setSignedOutState() {
   cards.innerHTML = '';
   authSection.classList.remove('hidden');
   appContent.classList.add('hidden');
-  userInfo.classList.add('hidden');
-  userEmailSpan.textContent = '';
+  // user info removed from UI
   updateTopNav(false);
   setAuthMode('login');
 }
@@ -105,8 +101,7 @@ function setSignedInState(user) {
   currentUser = user;
   authSection.classList.add('hidden');
   appContent.classList.remove('hidden');
-  userInfo.classList.remove('hidden');
-  userEmailSpan.textContent = user.email || 'Unknown user';
+  // user info removed from UI
   showAuthMessage('');
   updateTopNav(true);
   startRealtimeListener(user.uid);
@@ -188,24 +183,7 @@ if (googleBtn) {
   });
 }
 
-logoutBtn.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-  } catch (err) {
-    console.error('Logout error', err);
-  }
-});
-
-if (logoutNav) {
-  logoutNav.addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error('Logout error', err);
-    }
-  });
-}
+// logout button removed from DOM
 
 function formatDate(d) {
   if (!d) return '';
@@ -397,7 +375,7 @@ function applyFilter() {
   renderList(filtered);
 }
 
-searchInput.addEventListener('input', (e) => { currentFilter = e.target.value; applyFilter(); });
+// search input removed; filtering UI not present
 
 function escapeHtml(str) {
   if (!str) return '';
