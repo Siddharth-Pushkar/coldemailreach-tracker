@@ -40,6 +40,7 @@ body {
   background: rgba(1, 1, 1, 0.92);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(12px);
+  min-width: 0;
 }
 
 .brand {
@@ -50,6 +51,7 @@ body {
   color: var(--text);
   font-weight: 700;
   font-size: 1.05rem;
+  flex: 0 0 auto;
 }
 
 .brand img {
@@ -74,13 +76,20 @@ body {
   display: flex;
   align-items: center;
   gap: 24px;
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+.topnav-links::-webkit-scrollbar { display: none; }
 
 .topnav-links a {
   color: var(--text-soft);
   text-decoration: none;
   font-size: 0.95rem;
   transition: color 0.2s ease;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .topnav-links a:hover {
@@ -91,12 +100,16 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .nav-group {
   display: flex;
   align-items: center;
   gap: 18px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
 }
 
 .mobile-menu-toggle {
