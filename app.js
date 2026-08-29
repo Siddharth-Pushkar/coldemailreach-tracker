@@ -9,6 +9,7 @@ import {
   where,
   serverTimestamp,
   doc,
+  getDoc,
   updateDoc,
   deleteDoc
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
@@ -48,6 +49,7 @@ let allItems = [];
 let currentSearch = '';
 let currentStatusFilter = 'all';
 let currentDateFilter = '';
+let activeApplicationId = null;
 
 function showAuthMessage(message, type = 'error') {
   authMessage.textContent = message;
@@ -174,6 +176,30 @@ function formatDate(d) {
   return String(d);
 }
 
+function formatTimelineDate(dateValue) {
+  if (!dateValue) return new Date().toLocaleDateString();
+  if (typeof dateValue === 'object' && dateValue !== null && typeof dateValue.toDate === 'function') {
+    return dateValue.toDate().toLocaleDateString();
+  }
+  if (dateValue instanceof Date) return dateValue.toLocaleDateString();
+  try {
+    const dt = new Date(dateValue);
+    if (!isNaN(dt)) return dt.toLocaleDateString();
+  } catch (e) { }
+  return String(dateValue);
+}
+
+function statusLabel(status) {
+  const val = (status || 'Sent').toString().trim();
+  if (!val) return 'Sent';
+  if (val.toLowerCase() === 'follow up') return 'Follow Up';
+  return val.split(' ').map(word => word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : '').join(' ');
+}
+
+function normalizeStatusValue(status) {
+  return (status || 'Sent').toString().trim().toLowerCase();
+}
+
 function statusClass(status) {
   if (!status) return 'sent';
   const s = status.toLowerCase();
@@ -183,6 +209,27 @@ function statusClass(status) {
   if (s.includes('reject')) return 'rejected';
   if (s.includes('accept')) return 'accepted';
   return 'sent';
+}
+
+function normalizeTimeline(history) {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter(entry => entry && (entry.status || entry.date))
+    .map(entry => ({
+      status: (entry.status || 'Sent').toString(),
+      date: formatTimelineDate(entry.date || new Date())
+    }));
+}
+
+function getApplicationTimeline(item) {
+  if (Array.isArray(item?.timeline) && item.timeline.length > 0) {
+    return normalizeTimeline(item.timeline);
+  }
+  if (item?.status || item?.emailDate) {
+    const dateValue = item.emailDate || new Date();
+    return [{ status: item.status || 'Sent', date: formatTimelineDate(dateValue) }];
+  }
+  return [{ status: 'Sent', date: formatTimelineDate(new Date()) }];
 }
 
 // renderList removed — dashboard UI removed
@@ -308,9 +355,28 @@ function renderGrid(items) {
       select.addEventListener('change', async (e) => {
         e.stopPropagation();
         const newStatus = e.target.value;
+        const oldStatus = normalizeStatusValue(it.status || 'Sent');
+        if (!newStatus || normalizeStatusValue(newStatus) === oldStatus) return;
+
         try {
           const docRef = doc(db, 'applications', it.id);
-          await updateDoc(docRef, { status: newStatus });
+          const snapshot = await getDoc(docRef);
+          if (!snapshot.exists()) return;
+
+          const currentData = snapshot.data() || {};
+          const existingTimeline = normalizeTimeline(currentData.timeline);
+          const nextTimeline = [
+            ...existingTimeline,
+            {
+              status: newStatus,
+              date: formatTimelineDate(new Date())
+            }
+          ];
+
+          await updateDoc(docRef, {
+            status: newStatus,
+            timeline: nextTimeline
+          });
         } catch (err) { console.error('Status update failed', err); }
       });
     }
@@ -326,7 +392,11 @@ function openNewApplicationModal() {
   const deleteBtn = document.getElementById('modalDelete');
   if (!modal || !header || !body) return;
 
-  if (deleteBtn) deleteBtn.style.display = 'none';
+  activeApplicationId = null;
+  if (deleteBtn) {
+    deleteBtn.style.display = 'none';
+    deleteBtn.dataset.applicationId = '';
+  }
   header.innerHTML = '<h2>New application</h2>';
   body.innerHTML = `
     <form id="newApplicationForm" class="modal-form">
@@ -388,15 +458,21 @@ function openNewApplicationModal() {
       if (!currentUser || !currentUser.uid) return;
 
       const formData = new FormData(form);
+      const selectedStatus = (formData.get('status') || 'Sent').toString();
+      const timelineDate = formData.get('emailDate') || new Date().toISOString();
       const payload = {
         userId: currentUser.uid,
         company: (formData.get('company') || '').toString().trim(),
         position: (formData.get('position') || '').toString().trim(),
         approach: (formData.get('approach') || '').toString().trim(),
         emailDate: formData.get('emailDate') || '',
-        status: (formData.get('status') || 'Sent').toString(),
+        status: selectedStatus,
         resumeVersion: (formData.get('resumeVersion') || '').toString().trim(),
         notes: (formData.get('notes') || '').toString().trim(),
+        timeline: [{
+          status: selectedStatus,
+          date: formatTimelineDate(timelineDate)
+        }],
         createdAt: serverTimestamp()
       };
 
@@ -420,25 +496,76 @@ function openNewApplicationModal() {
 function openModal(item) {
   if (!item) return;
   const modal = document.getElementById('modal');
+  const header = document.getElementById('modalHeader');
   const body = document.getElementById('modalBody');
-  if (!modal || !body) return;
-  body.innerHTML = '';
-  const fields = ['company', 'position', 'status', 'emailAddress', 'emailDate', 'resumeVersion', 'notes'];
-  fields.forEach(f => {
-    if (item[f] || item[f] === 0) {
-      const el = document.createElement('div');
-      el.className = 'modal-field';
-      const title = document.createElement('strong'); title.textContent = f.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-      const span = document.createElement('span'); span.textContent = (f === 'emailDate' ? formatDate(item[f]) : (item[f] || ''));
-      el.appendChild(title); el.appendChild(span); body.appendChild(el);
-    }
-  });
-  modal.classList.remove('hidden'); modal.setAttribute('aria-hidden', 'false');
+  const deleteBtn = document.getElementById('modalDelete');
+  if (!modal || !header || !body) return;
+
+  activeApplicationId = item.id || null;
+  if (deleteBtn) {
+    deleteBtn.style.display = 'inline-flex';
+    deleteBtn.dataset.applicationId = item.id || '';
+  }
+  const companyName = escapeHtml(item.company || 'Application');
+  const statusValue = (item.status || 'Sent').toString();
+  const statusText = statusLabel(statusValue);
+  header.innerHTML = `
+    <div class="modal-title-wrap">
+      <h2>${companyName}</h2>
+      <span class="modal-status-badge ${statusClass(statusValue)}">${escapeHtml(statusText)}</span>
+    </div>
+  `;
+
+  const detailFields = [
+    ['Position', item.position],
+    ['Company', item.company],
+    ['Status', item.status],
+    ['Date', item.emailDate ? formatDate(item.emailDate) : ''],
+    ['Resume Sent', item.resumeVersion],
+    ['Notes', item.notes]
+  ].filter(([, value]) => value !== undefined && value !== null && value !== '');
+
+  const timelineEvents = getApplicationTimeline(item);
+
+  body.innerHTML = `
+    <div class="modal-panel details-panel">
+      <div class="modal-panel-title">Details</div>
+      <div class="modal-field-list">
+        ${detailFields.map(([label, value]) => `
+          <div class="modal-field">
+            <strong>${escapeHtml(label)}</strong>
+            <span>${escapeHtml(String(value))}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="modal-panel timeline-panel">
+      <div class="modal-panel-title">Timeline</div>
+      <div class="timeline">
+        ${timelineEvents.map((event, index) => `
+          <div class="timeline-item ${index === 0 ? 'current' : ''}">
+            <span class="timeline-node"></span>
+            <div class="timeline-content">
+              <div class="timeline-label">${escapeHtml(statusLabel(event.status || 'Sent'))}</div>
+              <div class="timeline-date">${escapeHtml(event.date || formatTimelineDate(new Date()))}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
 }
 
 function closeModal() {
   const modal = document.getElementById('modal');
   if (!modal) return;
+  activeApplicationId = null;
+  const deleteBtn = document.getElementById('modalDelete');
+  if (deleteBtn) deleteBtn.dataset.applicationId = '';
   modal.classList.add('hidden'); modal.setAttribute('aria-hidden', 'true');
 }
 
@@ -497,7 +624,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (newBtn) newBtn.addEventListener('click', () => { openNewApplicationModal(); });
   if (emptyNew) emptyNew.addEventListener('click', () => { openNewApplicationModal(); });
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  if (modalDelete) modalDelete.addEventListener('click', async () => { /* deletion intentionally left to existing modal logic */ closeModal(); });
+  if (modalDelete) {
+    modalDelete.addEventListener('click', async () => {
+      const appId = activeApplicationId || modalDelete.dataset.applicationId;
+      if (!appId) return;
+      try {
+        await deleteDoc(doc(db, 'applications', appId));
+        closeModal();
+      } catch (err) {
+        console.error('Delete application failed', err);
+      }
+    });
+  }
   if (logoutBtn) logoutBtn.addEventListener('click', () => { const ln = document.getElementById('logoutNav'); if (ln) ln.click(); });
 
   // filters
