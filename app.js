@@ -42,18 +42,12 @@ const confirmRow = document.querySelector('.confirm-row');
 const authSection = document.getElementById('authSection');
 const appContent = document.getElementById('appContent');
 
-const appForm = document.getElementById('appForm');
-const cards = document.getElementById('cards');
-const modal = document.getElementById('modal');
-const modalBody = document.getElementById('modalBody');
-const closeModal = document.getElementById('closeModal');
-const modalDelete = document.getElementById('modalDelete');
-// removed userInfo and search input elements (deleted from HTML)
-
-let allItems = [];
-let currentFilter = '';
 let currentUser = null;
 let unsubscribeListener = null;
+let allItems = [];
+let currentSearch = '';
+let currentStatusFilter = 'all';
+let currentDateFilter = '';
 
 function showAuthMessage(message, type = 'error') {
   authMessage.textContent = message;
@@ -80,19 +74,16 @@ function setAuthMode(mode) {
     registerBtn.classList.add('hidden');
   }
   authSection.classList.remove('hidden');
-  appContent.classList.add('hidden');
+  if (appContent) appContent.classList.add('hidden');
   showAuthMessage('');
 }
 
 function setSignedOutState() {
   currentUser = null;
-  if (unsubscribeListener) unsubscribeListener();
-  unsubscribeListener = null;
-  allItems = [];
-  cards.innerHTML = '';
   authSection.classList.remove('hidden');
-  appContent.classList.add('hidden');
-  // user info removed from UI
+  if (appContent) appContent.classList.add('hidden');
+  // stop realtime listener when signed out
+  if (typeof unsubscribeListener === 'function') { unsubscribeListener(); unsubscribeListener = null; }
   updateTopNav(false);
   setAuthMode('login');
 }
@@ -100,35 +91,17 @@ function setSignedOutState() {
 function setSignedInState(user) {
   currentUser = user;
   authSection.classList.add('hidden');
-  appContent.classList.remove('hidden');
-  // user info removed from UI
+  if (appContent) appContent.classList.remove('hidden');
   showAuthMessage('');
   updateTopNav(true);
-  startRealtimeListener(user.uid);
+  // show account email
+  const emailEl = document.getElementById('dashboardEmail');
+  if (emailEl) emailEl.textContent = user.email || user.displayName || 'Account';
+  // start listening for user's applications
+  if (user && user.uid) startRealtimeListener(user.uid);
 }
 
-function startRealtimeListener(userId) {
-  if (unsubscribeListener) unsubscribeListener();
-  const userQuery = query(colRef, where('userId', '==', userId));
-  unsubscribeListener = onSnapshot(userQuery, snapshot => {
-    const items = [];
-    snapshot.forEach(docSnap => {
-      const d = docSnap.data();
-      items.push({ id: docSnap.id, ...d });
-    });
-
-    items.sort((a, b) => {
-      const aTime = a.createdAt && typeof a.createdAt.toDate === 'function' ? a.createdAt.toDate().getTime() : 0;
-      const bTime = b.createdAt && typeof b.createdAt.toDate === 'function' ? b.createdAt.toDate().getTime() : 0;
-      return bTime - aTime;
-    });
-
-    allItems = items;
-    applyFilter();
-  }, err => {
-    console.error('Realtime listener error', err);
-  });
-}
+// realtime listener removed (main/dashboard UI removed)
 
 onAuthStateChanged(auth, user => {
   if (user) setSignedInState(user);
@@ -146,6 +119,9 @@ startNowNav.addEventListener('click', (e) => {
 });
 
 setAuthMode('login');
+
+// Dashboard UI event bindings
+// Dashboard bindings removed (main removed)
 
 loginBtn.addEventListener('click', async () => {
   const email = authForm.authEmail.value.trim();
@@ -209,171 +185,15 @@ function statusClass(status) {
   return 'sent';
 }
 
-function renderList(items) {
-  cards.innerHTML = '';
-  items.forEach(item => {
-    const c = document.createElement('div');
-    c.className = 'card';
-    c.dataset.id = item.id;
-    c.innerHTML = `
-      <div class="card-left">
-        <h3>${escapeHtml(item.company || '')}</h3>
-        <div class="card-info">
-          <span>${escapeHtml(item.position || 'N/A')}</span>
-          <span>•</span>
-          <span>${escapeHtml(item.approach || 'N/A')}</span>
-          <span>•</span>
-          <span>${formatDate(item.emailDate) || 'No date'}</span>
-        </div>
-      </div>
-      <div class="card-right">
-        <div class="status ${statusClass(item.status)}">${escapeHtml(item.status || '')}</div>
-        <select class="quick-status" data-id="${item.id}">
-          <option value="sent">Sent</option>
-          <option value="follow up">Follow Up</option>
-          <option value="under process">Under Process</option>
-          <option value="rejected">Rejected</option>
-          <option value="accepted">Accepted</option>
-        </select>
-        <button class="delete-btn" data-id="${item.id}">Delete</button>
-      </div>
-    `;
+// renderList removed — dashboard UI removed
 
-    // set select current value
-    const sel = c.querySelector('.quick-status');
-    if (sel) sel.value = item.status || 'sent';
+// openModal removed — Info Card modal removed along with main content
 
-    // clicking card opens modal
-    c.addEventListener('click', () => openModal(item));
+// modal handlers removed (modal removed from HTML)
 
-    // prevent select bubbling
-    sel.addEventListener('click', e => e.stopPropagation());
-    sel.addEventListener('change', async (e) => {
-      e.stopPropagation();
-      const id = e.target.dataset.id;
-      const newStatus = e.target.value;
-      try {
-        await updateDoc(doc(db, 'applications', id), { status: newStatus });
-      } catch (err) { console.error('update status', err) }
-    });
+// appForm submission removed (form removed from main)
 
-    const delBtn = c.querySelector('.delete-btn');
-    delBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const id = e.target.dataset.id;
-      if (!confirm('Delete this application?')) return;
-      try { await deleteDoc(doc(db, 'applications', id)); } catch (err) { console.error('delete', err) }
-    });
-
-    cards.appendChild(c);
-  });
-}
-
-function openModal(item) {
-  const statusClass_ = statusClass(item.status);
-  const modalHeader = document.getElementById('modalHeader');
-  modalHeader.innerHTML = `<h2>${escapeHtml(item.company || '')}</h2>`;
-  modalBody.innerHTML = `
-      <div class="modal-section">
-        <div class="modal-section-title">Job Details</div>
-        <div class="modal-fields">
-          <div class="modal-field">
-            <strong>Position:</strong>
-            <span>${escapeHtml(item.position || 'N/A')}</span>
-          </div>
-          <div class="modal-field">
-            <strong>Company type:</strong>
-            <span>${escapeHtml(item.companyType || 'N/A')}</span>
-          </div>
-          <div class="modal-field">
-            <strong>Approach:</strong>
-            <span>${escapeHtml(item.approach || 'N/A')}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-section">
-        <div class="modal-section-title">Status & Timeline</div>
-        <div class="modal-fields">
-          <div class="modal-field">
-            <strong>Status:</strong>
-            <span><div class="status ${statusClass_}" style="display:inline-block">${escapeHtml(item.status || '')}</div></span>
-          </div>
-          <div class="modal-field">
-            <strong>Email date:</strong>
-            <span>${formatDate(item.emailDate) || 'N/A'}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-section">
-        <div class="modal-section-title">Contact & Details</div>
-        <div class="modal-fields">
-          <div class="modal-field">
-            <strong>Email:</strong>
-            <span>${escapeHtml(item.emailAddress || 'N/A')}</span>
-          </div>
-          <div class="modal-field">
-            <strong>Resume:</strong>
-            <span>${escapeHtml(item.resumeVersion || 'N/A')}</span>
-          </div>
-          <div class="modal-field" style="grid-column:1/-1">
-            <strong>Notes:</strong>
-            <span>${escapeHtml(item.notes || 'N/A').replace(/\n/g, '<br>')}</span>
-          </div>
-        </div>
-      </div>
-  `;
-  modal.classList.remove('hidden');
-  modalDelete.dataset.id = item.id;
-}
-
-closeModal.addEventListener('click', () => modal.classList.add('hidden'));
-modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden') });
-
-modalDelete.addEventListener('click', async () => {
-  const id = modalDelete.dataset.id;
-  if (!id) return;
-  if (!confirm('Delete this application?')) return;
-  try { await deleteDoc(doc(db, 'applications', id)); modal.classList.add('hidden'); } catch (err) { console.error('modal delete', err) }
-});
-
-appForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!currentUser) { showAuthMessage('You must be signed in to add applications.', 'error'); return; }
-  const f = new FormData(appForm);
-  const data = {
-    company: f.get('company') || '',
-    companyType: f.get('companyType') || '',
-    position: f.get('position') || '',
-    approach: f.get('approach') || '',
-    status: f.get('status') || 'sent',
-    emailDate: f.get('emailDate') ? new Date(f.get('emailDate')) : null,
-    emailAddress: f.get('emailAddress') || '',
-    resumeVersion: f.get('resumeVersion') || '',
-    notes: f.get('notes') || '',
-    userId: currentUser.uid,
-    createdAt: serverTimestamp()
-  };
-  try {
-    await addDoc(colRef, data);
-    appForm.reset();
-  } catch (err) {
-    console.error('add doc', err);
-    showAuthMessage('Could not save application.');
-  }
-});
-
-function applyFilter() {
-  const term = (currentFilter || '').trim().toLowerCase();
-  if (!term) { renderList(allItems); return; }
-  const filtered = allItems.filter(it => {
-    const company = (it.company || '').toLowerCase();
-    const resume = (it.resumeVersion || '').toLowerCase();
-    return company.includes(term) || resume.includes(term);
-  });
-  renderList(filtered);
-}
+// applyFilter removed (dashboard removed)
 
 // search input removed; filtering UI not present
 
@@ -386,3 +206,310 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// --- Dashboard UI logic (render cards, search, filters, status updates) ---
+
+function startRealtimeListener(userId) {
+  // stop previous listener
+  if (typeof unsubscribeListener === 'function') { unsubscribeListener(); unsubscribeListener = null; }
+  try {
+    const q = query(colRef, where('userId', '==', userId));
+    unsubscribeListener = onSnapshot(q, snapshot => {
+      const items = [];
+      snapshot.forEach(docSnap => {
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      // sort by createdAt or emailDate if available
+      items.sort((a, b) => {
+        const ta = (a.createdAt && typeof a.createdAt.toDate === 'function') ? a.createdAt.toDate().getTime() : (a.emailDate ? new Date(a.emailDate).getTime() : 0);
+        const tb = (b.createdAt && typeof b.createdAt.toDate === 'function') ? b.createdAt.toDate().getTime() : (b.emailDate ? new Date(b.emailDate).getTime() : 0);
+        return tb - ta;
+      });
+      allItems = items;
+      applyFiltersAndRender();
+    }, err => { console.error('Listener error', err); });
+  } catch (e) { console.error('startRealtimeListener error', e); }
+}
+
+function applyFiltersAndRender() {
+  const term = (currentSearch || '').trim().toLowerCase();
+  const status = currentStatusFilter || 'all';
+  const date = currentDateFilter || '';
+  const filtered = allItems.filter(it => {
+    if (term) {
+      const company = (it.company || '').toLowerCase();
+      const position = (it.position || '').toLowerCase();
+      if (!(company.includes(term) || position.includes(term))) return false;
+    }
+    if (status !== 'all') {
+      const s = (it.status || '').toLowerCase();
+      if (!s.includes(status)) return false;
+    }
+    if (date) {
+      let itemDate = '';
+      if (it.emailDate && typeof it.emailDate.toDate === 'function') itemDate = it.emailDate.toDate().toISOString().slice(0, 10);
+      else if (it.emailDate instanceof Date) itemDate = it.emailDate.toISOString().slice(0, 10);
+      else if (typeof it.emailDate === 'string') { const dt = new Date(it.emailDate); if (!isNaN(dt)) itemDate = dt.toISOString().slice(0, 10); }
+      if (itemDate !== date) return false;
+    }
+    return true;
+  });
+  renderGrid(filtered);
+}
+
+function renderGrid(items) {
+  const container = document.getElementById('cards');
+  const empty = document.getElementById('emptyState');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!items || items.length === 0) {
+    container.classList.add('hidden');
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  container.classList.remove('hidden');
+  items.forEach(it => {
+    const card = document.createElement('article');
+    card.className = 'app-card';
+    card.tabIndex = 0;
+    card.setAttribute('data-id', it.id);
+    const dateText = formatDate(it.emailDate || it.createdAt || '');
+    card.innerHTML = `
+      <div class="card-top"><div class="card-date">${escapeHtml(dateText)}</div></div>
+      <div class="card-company">${escapeHtml(it.company || '')}</div>
+      <div class="card-position">${escapeHtml(it.position || '')}</div>
+      <div class="card-footer">
+        <span class="status-label">Status:</span>
+        <select class="quick-status" aria-label="Status for ${escapeHtml(it.company || '')}">
+          <option value="sent" ${(it.status || '').toLowerCase().includes('sent') ? 'selected' : ''}>Sent</option>
+          <option value="follow up" ${(it.status || '').toLowerCase().includes('follow') ? 'selected' : ''}>Follow Up</option>
+          <option value="accepted" ${(it.status || '').toLowerCase().includes('accept') ? 'selected' : ''}>Accepted</option>
+          <option value="rejected" ${(it.status || '').toLowerCase().includes('reject') ? 'selected' : ''}>Rejected</option>
+        </select>
+      </div>`;
+
+    // card click opens modal (dispatch event for existing handlers or use local modal)
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-id');
+      const evt = new CustomEvent('openApplication', { detail: { id } });
+      window.dispatchEvent(evt);
+      // also open local modal fallback
+      openModal(it);
+    });
+
+    // keyboard access
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+
+    const select = card.querySelector('.quick-status');
+    if (select) {
+      // prevent status clicks from opening modal
+      select.addEventListener('click', (e) => { e.stopPropagation(); });
+      select.addEventListener('change', async (e) => {
+        e.stopPropagation();
+        const newStatus = e.target.value;
+        try {
+          const docRef = doc(db, 'applications', it.id);
+          await updateDoc(docRef, { status: newStatus });
+        } catch (err) { console.error('Status update failed', err); }
+      });
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function openNewApplicationModal() {
+  const modal = document.getElementById('modal');
+  const header = document.getElementById('modalHeader');
+  const body = document.getElementById('modalBody');
+  const deleteBtn = document.getElementById('modalDelete');
+  if (!modal || !header || !body) return;
+
+  if (deleteBtn) deleteBtn.style.display = 'none';
+  header.innerHTML = '<h2>New application</h2>';
+  body.innerHTML = `
+    <form id="newApplicationForm" class="modal-form">
+      <div class="form-field">
+        <label for="newCompanyName">Company Name</label>
+        <input id="newCompanyName" name="company" type="text" placeholder="Acme Inc." required />
+      </div>
+
+      <div class="form-field">
+        <label for="newCompanyPosition">Company Position</label>
+        <input id="newCompanyPosition" name="position" type="text" placeholder="Product Designer" required />
+      </div>
+
+      <div class="form-field">
+        <label for="newApproach">Approach</label>
+        <select id="newApproach" name="approach">
+          <option value="Cold Email">Cold Email</option>
+          <option value="Referral">Referral</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <div class="form-field">
+          <label for="newDate">Date</label>
+          <input id="newDate" name="emailDate" type="date" required />
+        </div>
+
+        <div class="form-field">
+          <label for="newStatus">Status</label>
+          <select id="newStatus" name="status">
+            <option value="Sent">Sent</option>
+            <option value="Follow Up">Follow Up</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="newResumeSent">Resume Sent</label>
+        <input id="newResumeSent" name="resumeVersion" type="text" placeholder="v3 / final" />
+      </div>
+
+      <div class="form-field">
+        <label for="newNote">Note</label>
+        <textarea id="newNote" name="notes" placeholder="Add a short note about the outreach..."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">Add Application</button>
+    </form>
+  `;
+
+  const form = document.getElementById('newApplicationForm');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser || !currentUser.uid) return;
+
+      const formData = new FormData(form);
+      const payload = {
+        userId: currentUser.uid,
+        company: (formData.get('company') || '').toString().trim(),
+        position: (formData.get('position') || '').toString().trim(),
+        approach: (formData.get('approach') || '').toString().trim(),
+        emailDate: formData.get('emailDate') || '',
+        status: (formData.get('status') || 'Sent').toString(),
+        resumeVersion: (formData.get('resumeVersion') || '').toString().trim(),
+        notes: (formData.get('notes') || '').toString().trim(),
+        createdAt: serverTimestamp()
+      };
+
+      if (!payload.company || !payload.position || !payload.emailDate) return;
+
+      try {
+        await addDoc(colRef, payload);
+        closeModal();
+        form.reset();
+      } catch (err) {
+        console.error('Add application failed', err);
+      }
+    });
+  }
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+// Simple modal implementation to show details (non-intrusive, can be replaced later)
+function openModal(item) {
+  if (!item) return;
+  const modal = document.getElementById('modal');
+  const body = document.getElementById('modalBody');
+  if (!modal || !body) return;
+  body.innerHTML = '';
+  const fields = ['company', 'position', 'status', 'emailAddress', 'emailDate', 'resumeVersion', 'notes'];
+  fields.forEach(f => {
+    if (item[f] || item[f] === 0) {
+      const el = document.createElement('div');
+      el.className = 'modal-field';
+      const title = document.createElement('strong'); title.textContent = f.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+      const span = document.createElement('span'); span.textContent = (f === 'emailDate' ? formatDate(item[f]) : (item[f] || ''));
+      el.appendChild(title); el.appendChild(span); body.appendChild(el);
+    }
+  });
+  modal.classList.remove('hidden'); modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal() {
+  const modal = document.getElementById('modal');
+  if (!modal) return;
+  modal.classList.add('hidden'); modal.setAttribute('aria-hidden', 'true');
+}
+
+// wire dashboard UI controls if present
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.querySelector('.container');
+  const dashboard = document.getElementById('appContent');
+  const listSection = dashboard ? dashboard.querySelector('.list-section') : null;
+  const cards = document.getElementById('cards');
+
+  if (container) {
+    container.style.display = 'block';
+    container.style.gridTemplateColumns = 'none';
+    container.style.width = 'min(1200px, calc(100% - 48px))';
+    container.style.maxWidth = '1200px';
+    container.style.margin = '20px auto';
+    container.style.padding = '0';
+    container.style.boxSizing = 'border-box';
+  }
+
+  if (dashboard) {
+    dashboard.style.display = 'block';
+    dashboard.style.width = '100%';
+    dashboard.style.maxWidth = '1200px';
+    dashboard.style.margin = '0 auto';
+    dashboard.style.boxSizing = 'border-box';
+  }
+
+  if (listSection) {
+    listSection.style.width = '100%';
+    listSection.style.maxWidth = 'none';
+    listSection.style.boxSizing = 'border-box';
+  }
+
+  if (cards) {
+    cards.style.width = '100%';
+    cards.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+    cards.style.gap = '22px';
+  }
+
+  const search = document.getElementById('dashboardSearch');
+  const newBtn = document.getElementById('newBtn');
+  const emptyNew = document.getElementById('emptyNewBtn');
+  const closeBtn = document.getElementById('closeModal');
+  const modalDelete = document.getElementById('modalDelete');
+  const logoutBtn = document.getElementById('dashboardLogoutBtn');
+
+  if (search) {
+    let t;
+    search.addEventListener('input', (e) => {
+      clearTimeout(t);
+      t = setTimeout(() => { currentSearch = e.target.value || ''; applyFiltersAndRender(); }, 180);
+    });
+  }
+
+  if (newBtn) newBtn.addEventListener('click', () => { openNewApplicationModal(); });
+  if (emptyNew) emptyNew.addEventListener('click', () => { openNewApplicationModal(); });
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (modalDelete) modalDelete.addEventListener('click', async () => { /* deletion intentionally left to existing modal logic */ closeModal(); });
+  if (logoutBtn) logoutBtn.addEventListener('click', () => { const ln = document.getElementById('logoutNav'); if (ln) ln.click(); });
+
+  // filters
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentStatusFilter = btn.getAttribute('data-status') || 'all';
+      applyFiltersAndRender();
+    });
+  });
+
+  const dateEl = document.getElementById('dateFilter');
+  if (dateEl) dateEl.addEventListener('change', (e) => { currentDateFilter = e.target.value || ''; applyFiltersAndRender(); });
+});

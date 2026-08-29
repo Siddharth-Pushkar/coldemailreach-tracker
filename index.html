@@ -74,64 +74,60 @@
       </form>
     </section>
 
-    
 
-    <main class="container hidden" id="appContent">
-      <section class="form-section pane">
-        <h2>New Application</h2>
-        <form id="appForm">
-          <div class="row">
-            <label>Company name<input name="company" required></label>
-            <label>Company type<input name="companyType"></label>
-          </div>
-          <div class="row">
-            <label>Position<input name="position"></label>
-            <label>Approach
-              <select name="approach">
-                <option value="cold email">Cold Email</option>
-                <option value="referral">Referral</option>
-                <option value="direct apply">Direct Apply</option>
-              </select>
-            </label>
-          </div>
-          <div class="row">
-            <label>Status
-              <select name="status">
-                <option value="sent">Sent</option>
-                <option value="follow up">Follow Up</option>
-                <option value="under process">Under Process</option>
-                <option value="rejected">Rejected</option>
-                <option value="accepted">Accepted</option>
-              </select>
-            </label>
-            <label>Email date<input type="date" name="emailDate"></label>
-          </div>
-          <div class="row">
-            <label>Email address<input name="emailAddress"></label>
-          </div>
-          <div class="row">
-            <label>Resume version sent<input name="resumeVersion"></label>
-          </div>
-          <label class="full">Notes<textarea name="notes" rows="3"></textarea></label>
 
-          <div class="form-actions">
-            <button type="submit" id="submitBtn">Add Application</button>
-          </div>
-        </form>
-      </section>
-
+    <!-- Applications dashboard -->
+    <main class="container" id="appContent">
       <section class="list-section">
-        <div class="list-header">
-          <h2>Applications</h2>
+        <h2 class="section-heading">Applications</h2>
+        <div class="dashboard-header">
+          <div class="account-section" id="accountSection">
+            <div class="account-meta">
+              <div class="account-label">Account</div>
+              <div id="dashboardEmail" class="account-email">Not signed in</div>
+            </div>
+            <div class="account-actions">
+              <button id="dashboardLogoutBtn" class="nav-btn">Log Out</button>
+            </div>
+          </div>
+
+          <div class="search-new-row">
+            <input id="dashboardSearch" type="search" placeholder="Search applications by company or role"
+              autocomplete="off" />
+            <button id="newBtn" class="nav-btn primary">+ New</button>
+          </div>
+
+          <div class="filters-row">
+            <div class="status-filters" role="tablist" aria-label="Status filters">
+              <button class="filter-btn active" data-status="all">All</button>
+              <button class="filter-btn" data-status="sent">Sent</button>
+              <button class="filter-btn" data-status="follow up">Follow Up</button>
+              <button class="filter-btn" data-status="accepted">Accepted</button>
+              <button class="filter-btn" data-status="rejected">Rejected</button>
+            </div>
+            <div class="date-filter-wrap">
+              <input id="dateFilter" type="date" class="date-filter" />
+            </div>
+          </div>
         </div>
-        <div id="cards" class="list-view"></div>
+
+        <div id="cards" class="card-grid"></div>
+
+        <div id="emptyState" class="empty-state hidden">
+          <h3>No applications yet.</h3>
+          <p>Start tracking your outreach by adding your first application.</p>
+          <div style="margin-top:12px;"><button id="emptyNewBtn" class="nav-btn primary">+ New</button></div>
+        </div>
       </section>
     </main>
 
-    <div id="modal" class="modal hidden">
+    <!-- Simple Info Card modal (restored to support existing workflows) -->
+    <div id="modal" class="modal hidden" aria-hidden="true">
       <div class="modal-content">
         <button id="closeModal" class="close">✕</button>
-        <div id="modalHeader" class="modal-header"></div>
+        <div id="modalHeader" class="modal-header">
+          <h2>Application details</h2>
+        </div>
         <div id="modalBody" class="modal-body"></div>
         <div class="modal-actions">
           <button id="modalDelete" class="delete">Delete</button>
